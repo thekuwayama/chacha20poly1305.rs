@@ -38,7 +38,7 @@ fn inner_block(x: [u32; 16]) -> [u32; 16] {
     ]
 }
 
-pub fn chacha20_block(key: [u8; 32], counter: u32, nonce: [u8; 12]) -> [u8; 64] {
+pub fn chacha20_block(key: [u8; 32], counter: u64, nonce: [u8; 12]) -> [u8; 64] {
     let state: [u32; 16] = [
         CONSTANTS[0],
         CONSTANTS[1],
@@ -52,7 +52,7 @@ pub fn chacha20_block(key: [u8; 32], counter: u32, nonce: [u8; 12]) -> [u8; 64] 
         u32::from_le_bytes([key[20], key[21], key[22], key[23]]),
         u32::from_le_bytes([key[24], key[25], key[26], key[27]]),
         u32::from_le_bytes([key[28], key[29], key[30], key[31]]),
-        counter,
+        (counter & 0x0000ffff) as u32,
         u32::from_le_bytes([nonce[0], nonce[1], nonce[2], nonce[3]]),
         u32::from_le_bytes([nonce[4], nonce[5], nonce[6], nonce[7]]),
         u32::from_le_bytes([nonce[8], nonce[9], nonce[10], nonce[11]]),
@@ -76,12 +76,12 @@ pub fn chacha20_block(key: [u8; 32], counter: u32, nonce: [u8; 12]) -> [u8; 64] 
         .unwrap()
 }
 
-pub fn chacha20_encrypt(key: [u8; 32], counter: u32, nonce: [u8; 12], plaintext: &[u8]) -> Vec<u8> {
+pub fn chacha20_encrypt(key: [u8; 32], counter: u64, nonce: [u8; 12], plaintext: &[u8]) -> Vec<u8> {
     plaintext
         .chunks(64)
         .enumerate()
         .flat_map(|ib| {
-            let key_stream = chacha20_block(key, counter + (ib.0 as u32), nonce);
+            let key_stream = chacha20_block(key, counter + (ib.0 as u64), nonce);
             ib.1.iter()
                 .zip(key_stream.iter())
                 .map(|x| x.0 ^ x.1)
@@ -114,7 +114,7 @@ mod tests {
         let nonce: [u8; 12] = [
             0x00, 0x00, 0x00, 0x09, 0x00, 0x00, 0x00, 0x4a, 0x00, 0x00, 0x00, 0x00,
         ];
-        let counter = 1u32;
+        let counter = 1u64;
         let expected: [u8; 64] = [
             0x10, 0xf1, 0xe7, 0xe4, 0xd1, 0x3b, 0x59, 0x15, 0x50, 0x0f, 0xdd, 0x1f, 0xa3, 0x20,
             0x71, 0xc4, 0xc7, 0xd1, 0xf4, 0xc7, 0x33, 0xc0, 0x68, 0x03, 0x04, 0x22, 0xaa, 0x9a,
@@ -137,7 +137,7 @@ mod tests {
         let nonce: [u8; 12] = [
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x4a, 0x00, 0x00, 0x00, 0x00,
         ];
-        let counter = 1u32;
+        let counter = 1u64;
         let plaintext: &[u8] = &[
             0x4c, 0x61, 0x64, 0x69, 0x65, 0x73, 0x20, 0x61, 0x6e, 0x64, 0x20, 0x47, 0x65, 0x6e,
             0x74, 0x6c, 0x65, 0x6d, 0x65, 0x6e, 0x20, 0x6f, 0x66, 0x20, 0x74, 0x68, 0x65, 0x20,
