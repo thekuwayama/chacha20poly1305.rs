@@ -38,40 +38,33 @@ fn inner_block(x: [u32; 16]) -> [u32; 16] {
     ]
 }
 
-fn little_endian(arr: [u8; 4]) -> u32 {
-    (u32::from(arr[3]) << 24)
-        + (u32::from(arr[2]) << 16)
-        + (u32::from(arr[1]) << 8)
-        + u32::from(arr[0])
-}
-
 pub fn chacha20_block(key: [u8; 32], counter: u32, nonce: [u8; 12]) -> [u8; 64] {
     let state: [u32; 16] = [
         CONSTANTS[0],
         CONSTANTS[1],
         CONSTANTS[2],
         CONSTANTS[3],
-        little_endian([key[0], key[1], key[2], key[3]]),
-        little_endian([key[4], key[5], key[6], key[7]]),
-        little_endian([key[8], key[9], key[10], key[11]]),
-        little_endian([key[12], key[13], key[14], key[15]]),
-        little_endian([key[16], key[17], key[18], key[19]]),
-        little_endian([key[20], key[21], key[22], key[23]]),
-        little_endian([key[24], key[25], key[26], key[27]]),
-        little_endian([key[28], key[29], key[30], key[31]]),
+        u32::from_le_bytes([key[0], key[1], key[2], key[3]]),
+        u32::from_le_bytes([key[4], key[5], key[6], key[7]]),
+        u32::from_le_bytes([key[8], key[9], key[10], key[11]]),
+        u32::from_le_bytes([key[12], key[13], key[14], key[15]]),
+        u32::from_le_bytes([key[16], key[17], key[18], key[19]]),
+        u32::from_le_bytes([key[20], key[21], key[22], key[23]]),
+        u32::from_le_bytes([key[24], key[25], key[26], key[27]]),
+        u32::from_le_bytes([key[28], key[29], key[30], key[31]]),
         counter,
-        little_endian([nonce[0], nonce[1], nonce[2], nonce[3]]),
-        little_endian([nonce[4], nonce[5], nonce[6], nonce[7]]),
-        little_endian([nonce[8], nonce[9], nonce[10], nonce[11]]),
+        u32::from_le_bytes([nonce[0], nonce[1], nonce[2], nonce[3]]),
+        u32::from_le_bytes([nonce[4], nonce[5], nonce[6], nonce[7]]),
+        u32::from_le_bytes([nonce[8], nonce[9], nonce[10], nonce[11]]),
     ];
     let mut working_state: [u32; 16] = [0; 16];
     working_state.copy_from_slice(&state);
 
-    for _ in (0..10).rev() {
+    for _ in 0..10 {
         working_state = inner_block(working_state);
     }
 
-    for i in (0..16).rev() {
+    for i in 0..16 {
         working_state[i] = working_state[i].wrapping_add(state[i])
     }
 
@@ -89,9 +82,7 @@ pub fn chacha20_encrypt(key: [u8; 32], counter: u32, nonce: [u8; 12], plaintext:
         .enumerate()
         .flat_map(|ib| {
             let key_stream = chacha20_block(key, counter + (ib.0 as u32), nonce);
-            let block = ib.1;
-            block
-                .iter()
+            ib.1.iter()
                 .zip(key_stream.iter())
                 .map(|x| x.0 ^ x.1)
                 .collect::<Vec<u8>>()
