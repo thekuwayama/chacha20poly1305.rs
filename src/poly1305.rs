@@ -1,6 +1,11 @@
+use lazy_static::lazy_static;
 use num_bigint::BigUint;
 use num_traits::Zero;
 use std::convert::TryInto;
+
+lazy_static! {
+    static ref P: BigUint = (BigUint::from_bytes_le(&[1u8]) << 130) - 5u8;
+}
 
 pub fn poly1305_mac(msg: &[u8], key: [u8; 32]) -> [u8; 16] {
     let r: [u8; 16] = key[0..16]
@@ -12,14 +17,12 @@ pub fn poly1305_mac(msg: &[u8], key: [u8; 32]) -> [u8; 16] {
         .unwrap();
     let r = BigUint::from_bytes_be(&clamp(r));
     let s = BigUint::from_bytes_le(&key[16..32]);
-
-    let p: BigUint = (BigUint::from_bytes_le(&[1u8]) << 130) - 5u8; // FIXME: lazy_static!
     let a: BigUint = msg.chunks(16).into_iter().fold(Zero::zero(), |acc, c| {
         let mut b = c.to_vec();
         b.push(1u8);
         let block = BigUint::from_bytes_le(b.as_slice());
 
-        (acc + block) * r.clone() % p.clone()
+        (acc + block) * r.clone() % P.clone()
     });
 
     let mut res: Vec<u8> = (a + s).to_bytes_le();
@@ -46,7 +49,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_poly1305() {
+    fn test_poly1305_mac() {
         let key: [u8; 32] = [
             0x85, 0xd6, 0xbe, 0x78, 0x57, 0x55, 0x6d, 0x33, 0x7f, 0x44, 0x52, 0xfe, 0x42, 0xd5,
             0x06, 0xa8, 0x01, 0x03, 0x80, 0x8a, 0xfb, 0x0d, 0xb2, 0xfd, 0x4a, 0xbf, 0xf6, 0xaf,
