@@ -18,7 +18,7 @@ pub fn chacha20_aead_encrypt(
     // mac_data = aad | pad16(aad)
     let mut mac_data: Vec<u8> = vec![];
     let mut a = aad.to_vec();
-    a.resize(pad16_len(&aad), 0);
+    a.resize(pad16_len(aad), 0);
     mac_data.extend_from_slice(a.as_slice().as_ref());
     // mac_data |= ciphertext | pad16(ciphertext)
     let mut c = ciphertext.clone();
@@ -55,7 +55,7 @@ mod tests {
 
     #[test]
     fn test_poly1305_key_gen() {
-        // https://datatracker.ietf.org/doc/html/rfc7539#section-2.6.2
+        // https://datatracker.ietf.org/doc/html/rfc8439#section-2.6.2
         let key: [u8; 32] = [
             0x80, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87, 0x88, 0x89, 0x8a, 0x8b, 0x8c, 0x8d,
             0x8e, 0x8f, 0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a, 0x9b,
@@ -75,7 +75,7 @@ mod tests {
 
     #[test]
     fn test_chacha20_aead_encrypt() {
-        // https://datatracker.ietf.org/doc/html/rfc7539#section-2.8.2
+        // https://datatracker.ietf.org/doc/html/rfc8439#section-2.8.2
         let plaintext: &[u8] = &[
             0x4c, 0x61, 0x64, 0x69, 0x65, 0x73, 0x20, 0x61, 0x6e, 0x64, 0x20, 0x47, 0x65, 0x6e,
             0x74, 0x6c, 0x65, 0x6d, 0x65, 0x6e, 0x20, 0x6f, 0x66, 0x20, 0x74, 0x68, 0x65, 0x20,
