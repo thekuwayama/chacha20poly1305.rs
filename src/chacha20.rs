@@ -38,7 +38,7 @@ fn inner_block(x: [u32; 16]) -> [u32; 16] {
     ]
 }
 
-fn chacha20_block(key: [u8; 32], counter: u64, nonce: [u8; 12]) -> [u8; 64] {
+pub fn chacha20_block(key: [u8; 32], counter: u64, nonce: [u8; 12]) -> [u8; 64] {
     let state: [u32; 16] = [
         CONSTANTS[0],
         CONSTANTS[1],
