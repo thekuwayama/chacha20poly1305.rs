@@ -35,6 +35,16 @@ pub fn chacha20_aead_encrypt(
     (ciphertext, tag)
 }
 
+pub fn chacha20_aead_decrypt(
+    aad: &[u8],
+    key: [u8; 32],
+    iv: [u8; 8],
+    constant: [u8; 4],
+    ciphertext: &[u8],
+) -> (Vec<u8>, [u8; 16]) {
+    chacha20_aead_encrypt(aad, key, iv, constant, ciphertext)
+}
+
 fn poly1305_key_gen(key: [u8; 32], nonce: [u8; 12]) -> [u8; 32] {
     chacha20::chacha20_block(key, 0u64, nonce)[0..32]
         .try_into()
