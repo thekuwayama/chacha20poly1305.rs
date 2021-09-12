@@ -19,11 +19,11 @@ pub fn chacha20_aead_encrypt(
     let mut mac_data: Vec<u8> = vec![];
     let mut a = aad.to_vec();
     a.resize(pad16_len(aad), 0);
-    mac_data.extend_from_slice(a.as_slice().as_ref());
+    mac_data.extend_from_slice(&a);
     // mac_data |= ciphertext | pad16(ciphertext)
     let mut c = ciphertext.clone();
     c.resize(pad16_len(&ciphertext), 0);
-    mac_data.extend_from_slice(c.as_slice().as_ref());
+    mac_data.extend_from_slice(&c);
     //  mac_data |= num_to_8_le_bytes(aad.length)
     let a: [u8; 8] = aad.len().to_le_bytes();
     mac_data.extend_from_slice(&a);
@@ -31,7 +31,7 @@ pub fn chacha20_aead_encrypt(
     let c: [u8; 8] = ciphertext.len().to_le_bytes();
     mac_data.extend_from_slice(&c);
 
-    let tag = poly1305::poly1305_mac(mac_data.as_slice(), otk);
+    let tag = poly1305::poly1305_mac(&mac_data, otk);
     (ciphertext, tag)
 }
 

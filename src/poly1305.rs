@@ -20,7 +20,7 @@ pub fn poly1305_mac(msg: &[u8], key: [u8; 32]) -> [u8; 16] {
     let a: BigUint = msg.chunks(16).into_iter().fold(Zero::zero(), |acc, c| {
         let mut b = c.to_vec();
         b.push(1u8);
-        let block = BigUint::from_bytes_le(b.as_slice());
+        let block = BigUint::from_bytes_le(&b);
 
         (acc + block) * r.clone() % P.clone()
     });
